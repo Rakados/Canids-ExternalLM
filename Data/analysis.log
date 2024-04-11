@@ -1,0 +1,15 @@
+Date=2023-12-13
+Time=15:46:30
+InputPath=
+OutputPath=C:\Users\Rakados\Downloads\External_code\External_code\Data
+Files=AMNH_77.json,AMNH_78.json,AMNH_6285.json,AMNH_10746.json,AMNH_11154.json,AMNH_16257.json,AMNH_16258.json,AMNH_16259.json,AMNH_16260.json,AMNH_16261.json,AMNH_16263.json,AMNH_16265.json,AMNH_16266.json,AMNH_17432.json,AMNH_35171.json,AMNH_35564.json,AMNH_35609.json,AMNH_35865.json,AMNH_42899.json,AMNH_63770.json,AMNH_63976.json,AMNH_64000.json,AMNH_69453.json,AMNH_69456.json,AMNH_69465.json,AMNH_69469.json,AMNH_70118.json,AMNH_80291.json,AMNH_90118.json,AMNH_90154.json,AMNH_90210.json,AMNH_90212.json,AMNH_90231.json,AMNH_90250.json,AMNH_99663.json,AMNH_99665.json,AMNH_99666.json,AMNH_99667.json,AMNH_99669.json,AMNH_99673.json,AMNH_99679.json,AMNH_99680.json,AMNH_100128.json,AMNH_100132.json,AMNH_100321.json,AMNH_100450.json,AMNH_120450.json,AMNH_132868.json,AMNH_140219.json,AMNH_165623.json,AMNH_165673.json,AMNH_179936.json,AMNH_189373.json,AMNH_204177.json,AMNH_204218.json,AMNH_204453.json,AMNH_212877.json,AMNH_238447.json,LACM_22825.json,LACM_30124.json,LACM_30126.json,LACM_30128.json,LACM_30129.json,LACM_30416.json,LACM_30417.json,LACM_30419.json,LACM_30423.json,LACM_30537.json,LACM_30539.json,LACM_30541.json,LACM_30595.json,LACM_31092.json,LACM_31098.json,LACM_31106.json,LACM_92250.json,LACM_92252.json,LACM_92253.json,SMNS_5014.json,SMNS_5016.json,SMNS_18994.json,SMNS_51589.json,USNM_168440.json,WAM_3831.json,WAM_5261.json,YPM_2872.json,YPM_3245.json,YPM_4919.json,YPM_4921.json,YPM_4923.json,YPM_4925.json,YPM_4937.json,YPM_4938.json,YPM_4944.json,YPM_4947.json,YPM_4949.json,YPM_6940.json,YPM_6967.json,YPM_7251.json,YPM_7345.json,YPM_7355.json,YPM_7356.json,YPM_7471.json,YPM_7975.json,YPM_7987.json,YPM_8002.json,YPM_8725.json,YPM_9618.json,YPM_10435.json,YPM_10545.json,YPM_10670.json,YPM_10673.json,YPM_12614.json,YPM_14240.json,YPM_14389.json,ZMBMAM_35327.json,ZMBMAM_52489.json,ZMBMAM_69300.json
+LM_format=.json
+NumberLM=41
+ExcludedLM=12,34,35
+Boas=True
+MeanShape=MeanShape.csv
+eigenvalues=eigenvalues.csv
+eigenvectors=eigenvectors.csv
+OutputData=OutputData.csv
+pcScores=pcScores.csv
+SemiLandmarks= 
