@@ -3,6 +3,7 @@ library(ggplot2)
 library(geomorph)
 library(SlicerMorphR)
 library(tidyverse)
+library(janitor)
 library(gtools)
 
 
@@ -100,8 +101,14 @@ SlicerMorph.repc<-SlicerMorph.PCs[order(rownames(SlicerMorph.PCs)),]
 
 ## Adding to match breed names with slicer data
 breed_list <- read.csv("./data/Breed_list.csv")
-
+# Adding bite force data to slicer data
+bite_force <- read.csv("./data/Canid_BiteForce_values.csv") %>% 
+  remove_empty(which = "rows", cutoff = 0.3) %>%
+  clean_names()
+# Allocating space for new columns
 SlicerMorph.repc$Breed <- rep(NA, nrow(SlicerMorph.repc))
+SlicerMorph.repc$bfq_canine <- rep(NA, nrow(SlicerMorph.repc))
+SlicerMorph.repc$bfq_carnassial <- rep(NA, nrow(SlicerMorph.repc))
 
 for (j in 1:nrow(SlicerMorph.repc)){
   specimen_name <- unlist(str_split(rownames(SlicerMorph.repc)[j], "_"))
@@ -110,6 +117,17 @@ for (j in 1:nrow(SlicerMorph.repc)){
   if(length(which_row) == 0) next
   SlicerMorph.repc$Breed[j] <- breed_list$Breed[which_row]
 }
+
+for (j in 1:nrow(SlicerMorph.repc)){
+  specimen_name <- unlist(str_split(rownames(SlicerMorph.repc)[j], "_"))
+  which_row <- which(bite_force$institution == specimen_name[1] & 
+                       bite_force$code == specimen_name[2])
+  if(length(which_row) == 0) next
+  SlicerMorph.repc$bfq_canine[j] <- bite_force$bfq_canine[which_row]
+  SlicerMorph.repc$bfq_carnassial[j] <- bite_force$bfq_carnassial[which_row]
+}
+
+
 
 ### NOTE FOR LINDSAY: You should only need to run the code from the tutorial this far to get the data genrated for the figures.
 ### You can skip th rest of this section

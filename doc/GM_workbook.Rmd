@@ -24,96 +24,65 @@ source("./src/GM_stats.R")
 
 ## Plotting results
 
-```{r plot-fxns, include=FALSE }
-##First generate some generic plotting functions that will be useful for the remaining plots
-plotbuild<-function(datagroup, colgroup){
-  ggplot(SlicerMorph.repc, aes(x=SlicerMorph.repc[,1],y=SlicerMorph.repc[,2],color = colgroup, label = rownames(SlicerMorph.repc)))
-}
-Pointadd<-function(datagroup){
-  geom_point(SlicerMorph.repc, mapping = aes(x=PC.1,y=PC.2, shape = datagroup))
-}
 
+```{r plotting-setup}
+# Setting UKC group order
+UKC_group_order <- c("NATURAL", "Herding", "Terrier", "Companion", "Gun dog", 
+                     "Guardian", "Northern Breed", "Sighthound", "Scenthound")
+AKC_group_order <- c("NATURAL", "Herding", "Terrier", "Toy", "Sporting", 
+                     "Working", "Non-sporting", "Hound")
 
-
-group_order <- c("NATURAL", "Herding", "Terrier", "Companion", "Gun dog", "Guardian", "Northern Breed", "Sighthound", "Scenthound")
-
-```
-
-
-
-
-```{r}
 # grouping plots ----------------------------------------------------------
-#First added your ordered classifiers onto the PCA data
+# First added your ordered classifiers onto the PCA data
 SlicerMorph.repc$UKC <- clsf_reord$UKC.breeding.Standard
 SlicerMorph.repc$AKC <- clsf_reord$AKC.breeding.standard
+# Set mixed breed to NA for plotting, there is only one!
 SlicerMorph.repc$UKC[SlicerMorph.repc$UKC == "MIXED"] <- NA
 SlicerMorph.repc$AKC[SlicerMorph.repc$AKC == "MIXED"] <- NA
+# Setting fox to natural for AKC/UKC grouping to simplify plots
 SlicerMorph.repc$UKC[SlicerMorph.repc$UKC == "FOX"] <- "NATURAL"
 SlicerMorph.repc$AKC[SlicerMorph.repc$AKC == "FOX"] <- "NATURAL"
 
+# Changing Yes to lowercase
 SlicerMorph.repc$Nosework <- ifelse(clsf_reord$Nose =="Yes" | clsf_reord$Nose == "no", 
                                     tolower(clsf_reord$Nose), clsf_reord$Nose)
+# Changing Nosework to ordered factor
 SlicerMorph.repc$Nosework <- factor(SlicerMorph.repc$Nosework, ordered = T, 
                                     levels = c("yes", "no", "NATURAL", "FOX"))
+# Changing Yes to lowercase 
 SlicerMorph.repc$Bitework <- ifelse(clsf_reord$Bitework =="Yes" | clsf_reord$Bitework == "no",
                                     tolower(clsf_reord$Bitework), clsf_reord$Bitework)
+# Changing Bitework to ordered factor
 SlicerMorph.repc$Bitework <- factor(SlicerMorph.repc$Bitework, ordered = T, 
                                     levels = c("yes", "no", "NATURAL", "FOX"))
+# Putting cluster levels into a column as a factor
 SlicerMorph.repc$cluster <- factor(km$cluster)
 
-SlicerMorph.repc <- SlicerMorph.repc[complete.cases(SlicerMorph.repc),]
-
 # Now to ease viewing we'll factor them into broad categories
-## UKC first
-#SlicerMorph.repc$UKC.shapefact <- factor(SlicerMorph.repc$UKC, 
-#                                         levels = c("FOX", "NATURAL", "Herding",
-#                                                    "Terrier", "Companion", "Gun dog",
-#                                                    "Guardian", "MIXED", "Sighthound",
-#                                                    "Northern Breed", "Scenthound"))
 
-
-SlicerMorph.repc$UKC.shapefact <- factor(SlicerMorph.repc$UKC, ordered=T, levels = group_order)
-
-#levels(SlicerMorph.repc$UKC.fact) <- c("Companion", "FOX", "Working",  "Hunting", "Herding", 
-#                                       "Companion", "NATURAL", "Working", "Hunting", 
-#                                       "Hunting", "Terrier")
-
-#SlicerMorph.repc$UKC.fact <- factor(SlicerMorph.repc$UKC.fact, 
-#                                    levels = c("FOX", "NATURAL", "Herding", "Terrier", 
-#                                               "Working", "Hunting", "Companion"))
+# Turning UKC isnto an ordered factor column
+SlicerMorph.repc$UKC.shapefact <- factor(SlicerMorph.repc$UKC, ordered = T, 
+                                         levels = UKC_group_order)
 
 ## AKC next
 SlicerMorph.repc$AKC.shapefact <- factor(SlicerMorph.repc$AKC, 
-                                         levels = c("FOX", "NATURAL", "Herding", "Terrier", 
-                                                    "Toy", "Sporting", "Working", "Non-sporting", 
-                                                    "Hound", "MIXED"))
+                                         levels = AKC_group_order)
 
 SlicerMorph.repc$AKC.fact <- factor(SlicerMorph.repc$AKC)
 
-levels(SlicerMorph.repc$AKC.fact) <- c("FOX", "Herding", "Hunting", "Companion", "NATURAL", 
-                                       "Companion", "Hunting", "Terrier", "Companion", "Working")
-SlicerMorph.repc$UKC.fact <- factor(SlicerMorph.repc$AKC.fact, 
-                                    levels = c("FOX", "NATURAL", "Herding", "Terrier", "Working", 
-                                               "Hunting", "Companion"))
+## Setting up a column that is domestic (dogs) and natural (foxes, others)
 SlicerMorph.repc$domestic <- factor(ifelse(SlicerMorph.repc$UKC == "NATURAL" | 
                                              SlicerMorph.repc$UKC == "FOX", 
                                            "Natural", "Domesticated"), 
                                     ordered = T, levels = c("Domesticated", "Natural"))
 
-
-#now a whole bunch of plotting functions to visualize the results
-#First set which group you want plots of from the options: "UKC" "AKC" "Nosework" "Bitework"
-grptoggle <- "Bitework"
-coltoggle <- paste(grptoggle, ".fact", sep = "")
-shapetoggle <- paste(grptoggle, ".shapefact", sep = "")
 ```
 
 K-means clustering plot: 
 
 ```{r k-means, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot."}
 #now build the plot
-p1 <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = cluster, 
+pkmean <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$UKC),], aes(PC.1, PC.2, color = cluster, 
                                    fill = cluster,
                                    shape = domestic)) + 
   geom_point(size = 2) +
@@ -121,17 +90,17 @@ p1 <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = cluster,
   scale_shape_manual(values = c(5, 19), name = " ") +
   scale_color_munch(choice = "Nietzsche", discrete = TRUE,name = "Cluster") + 
   scale_fill_munch(choice = "Nietzsche", discrete = TRUE, name = "Cluster") +
-  geom_text_repel(label = SlicerMorph.repc$Breed, max.overlaps = 4, show.legend = FALSE)+
-  xlab("PC 1") + ylab("PC 2") +
+  geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$UKC)], max.overlaps = 4, show.legend = FALSE)+
+  xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
   theme_bw()
-p1
+pkmean
 ```
 
-```{r kc-groups, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot."}
+```{r kc-groups, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=5.5, fig.width=12}
 #now build the plot
 kc_palette <- munch_palette("Murderer", 8)
 kc_palette <- c(kc_palette, kc_palette[2])
-p1 <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = UKC.shapefact, 
+pUKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$UKC),], aes(PC.1, PC.2, color = UKC.shapefact, 
                                    fill = UKC.shapefact,
                                    shape = UKC.shapefact)) + 
   geom_point(size = 2) +
@@ -139,11 +108,11 @@ p1 <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = UKC.shapefact,
   scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "UKC Group") +
   scale_color_manual(values = kc_palette, name = "UKC Group") + 
   scale_fill_manual(values = kc_palette, name = "UKC Group") +
-  geom_text_repel(label = SlicerMorph.repc$Breed, max.overlaps = 4, show.legend = FALSE)+
+  geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$UKC)], max.overlaps = 4, show.legend = FALSE)+
   
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
   theme_bw()
-p2 <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = AKC.shapefact, 
+pAKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$AKC),], aes(PC.1, PC.2, color = AKC.shapefact, 
                                    fill = AKC.shapefact,
                                    shape = AKC.shapefact)) + 
   geom_point(size = 2) +
@@ -152,42 +121,72 @@ p2 <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = AKC.shapefact,
   scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "AKC Group") +
   scale_color_munch(choice = "Murderer", discrete = TRUE, name = "AKC Group") + 
   scale_fill_munch(choice = "Murderer", discrete = TRUE, name = "AKC Group") +
-  geom_text_repel(label = SlicerMorph.repc$Breed, max.overlaps = 4, show.legend = FALSE)+
+  geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$AKC)], max.overlaps = 4, show.legend = FALSE)+
   
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
   theme_bw()
-p1 + p2
+pUKC + pAKC
 ```
 
 ```{r fxn-groupings, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.cap="Bitework and scent work."}
-p1 <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Bitework, 
+fxn_group_palette <- munch_palette("Murderer",8)[c(1:3,5)]
+pbite <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Bitework, 
                                    fill = Bitework,
                                    shape = Bitework)) + 
   geom_point() +
   stat_ellipse(geom = "polygon", level = 0.95, alpha = 0.1) +
   scale_shape_manual(values = c(21, 23, 0, 2), name = " ") +
-  scale_color_manual(values = munch_palette("Murderer",8)[c(1:3,5)], name = " ") + 
-  scale_fill_manual(values = munch_palette("Murderer",8)[c(1:3,5)], name = " ") +
+  scale_color_manual(values = fxn_group_palette, name = " ") + 
+  scale_fill_manual(values = fxn_group_palette, name = " ") +
   xlab("PC 1 (Var = 50.2%)") + 
   ylab(" ") +
   ggtitle("Bitework group") +
   theme_bw()
-p2 <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Nosework, 
+pscent <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Nosework, 
                                    fill = Nosework,
                                    shape = Nosework)) + 
   geom_point() +
   stat_ellipse(geom = "polygon", level = 0.95, alpha = 0.1) +
   scale_shape_manual(values = c(21, 23, 0, 2), name = " ") +
-  scale_color_manual(values = munch_palette("Murderer",8)[c(1:3,5)], name = " ") + 
-  scale_fill_manual(values = munch_palette("Murderer",8)[c(1:3,5)], name = " ") +
+  scale_color_manual(values = fxn_group_palette, name = " ") + 
+  scale_fill_manual(values = fxn_group_palette, name = " ") +
   xlab("PC 1 (Var = 50.2%)") + 
   ylab("PC 2 (Var = 13.3%)") +
   ggtitle("Scentwork group") +
   theme_bw()
-p2 + p1 + plot_layout(guides = "collect")
+pscent + pbite + plot_layout(guides = "collect")
 
 ```
 
+```{r bite-force}
+bite_data <- data.frame("Breed" = SlicerMorph.repc$Breed, 
+                        "Bitework" = SlicerMorph.repc$Bitework, 
+                        "Domestic" = SlicerMorph.repc$domestic, 
+                        "UKC" = SlicerMorph.repc$UKC, 
+                        "AKC" = SlicerMorph.repc$AKC,
+                        "canine" = SlicerMorph.repc$bfq_canine, 
+                        "carnassial" = SlicerMorph.repc$bfq_carnassial)
+bite_data_long <- pivot_longer(bite_data, cols = c("canine","carnassial"))
+pforce <- ggplot(bite_data_long, aes(Bitework, value, fill = name)) + 
+  geom_boxplot(alpha = 0.4, outlier.shape = NA) + 
+  geom_point(alpha = 0.5, position = position_jitterdodge(jitter.width = 0.2), shape = 21) +
+  scale_fill_manual(values = munch_palette("Scream1",2), name = " ") +
+  ylab("Bite force quotient") + 
+  theme_bw()
+pforce
+```
 
 
+## For the paper: 
 
+Figure 2: 
+
+```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
+pkmean / (pAKC + pUKC) + plot_annotation(tag_levels = "A")
+```
+
+Figure 3: 
+
+```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=7.5, fig.width=12}
+pscent + pbite + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
+```
