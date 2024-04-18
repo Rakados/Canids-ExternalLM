@@ -19,6 +19,8 @@ library(munchcolors)
 ## Running analysis
 
 ```{r}
+dir.create("./results", showWarnings = F)
+dir.create("./results/figures", showWarnings = F)
 source("./src/GM_stats.R")
 ```
 
@@ -105,9 +107,9 @@ pUKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$UKC),], aes(PC.1, PC.2, 
                                    shape = UKC.shapefact)) + 
   geom_point(size = 2) +
   stat_ellipse(geom = "polygon", aes(group = UKC.shapefact), level = 0.95, alpha = 0.2) +
-  scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "UKC Group") +
-  scale_color_manual(values = kc_palette, name = "UKC Group") + 
-  scale_fill_manual(values = kc_palette, name = "UKC Group") +
+  scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "UKC Groups") +
+  scale_color_manual(values = kc_palette, name = "UKC Groups") + 
+  scale_fill_manual(values = kc_palette, name = "UKC Groups") +
   geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$UKC)], max.overlaps = 4, show.legend = FALSE)+
   
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
@@ -118,9 +120,9 @@ pAKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$AKC),], aes(PC.1, PC.2, 
   geom_point(size = 2) +
   stat_ellipse(geom = "polygon", aes(fill = AKC.shapefact, 
                                      group = AKC.shapefact), level = 0.95, alpha = 0.2) +
-  scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "AKC Group") +
-  scale_color_munch(choice = "Murderer", discrete = TRUE, name = "AKC Group") + 
-  scale_fill_munch(choice = "Murderer", discrete = TRUE, name = "AKC Group") +
+  scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "AKC Groups") +
+  scale_color_munch(choice = "Murderer", discrete = TRUE, name = "AKC Groups") + 
+  scale_fill_munch(choice = "Murderer", discrete = TRUE, name = "AKC Groups") +
   geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$AKC)], max.overlaps = 4, show.legend = FALSE)+
   
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
@@ -140,7 +142,7 @@ pbite <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Bitework,
   scale_fill_manual(values = fxn_group_palette, name = " ") +
   xlab("PC 1 (Var = 50.2%)") + 
   ylab(" ") +
-  ggtitle("Bitework group") +
+  ggtitle("Selected for bite work") +
   theme_bw()
 pscent <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Nosework, 
                                    fill = Nosework,
@@ -152,7 +154,7 @@ pscent <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Nosework,
   scale_fill_manual(values = fxn_group_palette, name = " ") +
   xlab("PC 1 (Var = 50.2%)") + 
   ylab("PC 2 (Var = 13.3%)") +
-  ggtitle("Scentwork group") +
+  ggtitle("Selected for scent work") +
   theme_bw()
 pscent + pbite + plot_layout(guides = "collect")
 
@@ -168,12 +170,34 @@ bite_data <- data.frame("Breed" = SlicerMorph.repc$Breed,
                         "carnassial" = SlicerMorph.repc$bfq_carnassial)
 bite_data_long <- pivot_longer(bite_data, cols = c("canine","carnassial"))
 pforce <- ggplot(bite_data_long, aes(Bitework, value, fill = name)) + 
-  geom_boxplot(alpha = 0.4, outlier.shape = NA) + 
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) + 
   geom_point(alpha = 0.5, position = position_jitterdodge(jitter.width = 0.2), shape = 21) +
-  scale_fill_manual(values = munch_palette("Scream1",2), name = " ") +
-  ylab("Bite force quotient") + 
+  scale_fill_manual(values = munch_palette("YellowLog",2), name = " ") +
+  ylab("Bite-force quotient") + xlab("Selected for bite work") +
   theme_bw()
 pforce
+```
+
+```{r bite-force-stats}
+bite_yes_canine <- bite_data$canine[bite_data$Bitework == "yes"]
+bite_no_canine <- bite_data$canine[bite_data$Bitework == "no"]
+shapiro.test(bite_yes_canine)
+shapiro.test(bite_no_canine)
+t.test(bite_yes_canine, bite_no_canine)
+
+bite_yes_carnassial <- bite_data$carnassial[bite_data$Bitework == "yes"]
+bite_no_carnassial <- bite_data$carnassial[bite_data$Bitework == "no"]
+shapiro.test(bite_yes_carnassial)
+shapiro.test(bite_no_carnassial)
+t.test(bite_yes_carnassial, bite_no_carnassial)
+
+bite_natural_canine <- bite_data$canine[bite_data$Bitework == "NATURAL"]
+shapiro.test(bite_natural_canine)
+bite_fox_canine <- bite_data$canine[bite_data$Bitework == "FOX"]
+shapiro.test(bite_fox_canine)
+
+t.test(bite_yes_canine, bite_natural_canine)
+t.test(bite_yes_canine, bite_fox_canine)
 ```
 
 
@@ -183,10 +207,12 @@ Figure 2:
 
 ```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
 pkmean / (pAKC + pUKC) + plot_annotation(tag_levels = "A")
+ggsave("./results/figures/figure2.pdf")
 ```
 
 Figure 3: 
 
-```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=7.5, fig.width=12}
-pscent + pbite + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
+```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=7.5, fig.width=10}
+(pscent + pbite + plot_layout(guides = "collect")) / pforce  + plot_annotation(tag_levels = "A")
+ggsave("./results/figures/figure3.pdf")
 ```

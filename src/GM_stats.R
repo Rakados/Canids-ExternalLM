@@ -209,4 +209,4 @@ k.clusts<-data.frame(x=1:15,y=km.var)
 ggplot(k.clusts,aes(x=x,y=y))+geom_line(color="#23669D")+geom_point()+labs(x="number of clusters",y="Total Within Sum of Squares ")
 
 #now view the kmeans for whichever number of clusters is most appropriate
-km<-Kanalyses(3)
+km<-Kanalyses(4)
