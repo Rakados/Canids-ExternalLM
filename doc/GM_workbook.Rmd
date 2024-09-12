@@ -153,16 +153,22 @@ Running CVA analysis on the first 5 principal components with Morpho package.
 # Extracting first 5 PCs and each kennel-club grouping scheme
 skulls <- cbind(SlicerMorph.repc[, 1:5], 
                 "UKC" = factor(SlicerMorph.repc$UKC, ordered = T, levels = UKC_group_order), 
-                "AKC" = factor(SlicerMorph.repc$AKC, ordered = T, levels = AKC_group_order))
+                "AKC" = factor(SlicerMorph.repc$AKC, ordered = T, levels = AKC_group_order),
+                "bitework" = factor(SlicerMorph.repc$Bitework),
+                "scentwork" = factor(SlicerMorph.repc$Nosework))
 skulls <- na.omit(skulls)
 
 # CVA
 skullCVA_UKC <- CVA(skulls[, 1:5], skulls$UKC)
 skullCVA_AKC <- CVA(skulls[, 1:5], skulls$AKC)
+skullCVA_bite <- CVA(skulls[, 1:5], skulls$bitework)
+skullCVA_scent <- CVA(skulls[, 1:5], skulls$scentwork)
 
 # Type probabilities
 typprobs_UKC <- typprobClass(skullCVA_UKC$CVscores, groups = skulls$UKC)
 typprobs_AKC <- typprobClass(skullCVA_AKC$CVscores, groups = skulls$AKC)
+typprobs_bite <- typprobClass(skullCVA_bite$CVscores, groups = skulls$bitework)
+typprobs_scent <- typprobClass(skullCVA_scent$CVscores, groups = skulls$scentwork)
 
 # Permutation distance, extract p-value tables
 perms_AKC <- permudist(skullCVA_AKC$CVscores, skulls$AKC, p.adjust.method = "bonferroni")
@@ -172,6 +178,15 @@ p_values_AKC[upper.tri(p_values_AKC, diag = T)] <- NA
 perms_UKC <- permudist(skullCVA_UKC$CVscores, skulls$UKC, p.adjust.method = "bonferroni")
 p_values_UKC <- as.matrix(perms_UKC$p.value, arr.ind = TRUE)
 p_values_UKC[upper.tri(p_values_UKC, diag = T)] <- NA
+
+perms_bite <- permudist(skullCVA_bite$CVscores, skulls$bite, p.adjust.method = "bonferroni")
+p_values_bite <- as.matrix(perms_bite$p.value, arr.ind = TRUE)
+p_values_bite[upper.tri(p_values_bite, diag = T)] <- NA
+
+perms_scent <- permudist(skullCVA_scent$CVscores, skulls$scent, p.adjust.method = "bonferroni")
+p_values_scent <- as.matrix(perms_scent$p.value, arr.ind = TRUE)
+p_values_scent[upper.tri(p_values_scent, diag = T)] <- NA
+
 ```
 
 Plotting CV results with kennel-club groups:
@@ -191,6 +206,16 @@ CVA_AKC_df <- data.frame("CV1" = skullCVA_AKC$CVscores[, 1],
                          "CV4" = skullCVA_AKC$CVscores[, 4],
                          "CV5" = skullCVA_AKC$CVscores[, 5],
                          "groups" = skulls$AKC)
+
+CVA_bite_df <- data.frame("CV1" = skullCVA_bite$CVscores[, 1], 
+                         "CV2" = skullCVA_bite$CVscores[, 2],
+                         "CV3" = skullCVA_bite$CVscores[, 3],
+                         "groups" = skulls$bitework)
+
+CVA_scent_df <- data.frame("CV1" = skullCVA_scent$CVscores[, 1], 
+                         "CV2" = skullCVA_scent$CVscores[, 2],
+                         "CV3" = skullCVA_scent$CVscores[, 3],
+                         "groups" = skulls$scentwork)
 
 p_CVA_UKC <- ggplot(CVA_UKC_df, aes(CV1, CV2, col = groups, fill = groups, shape = groups)) + 
   geom_point(size = 2) +
@@ -214,6 +239,24 @@ p_CVA_AKC <- ggplot(CVA_AKC_df, aes(CV1, CV2, col = groups, fill = groups, shape
   ylab(paste0("CV 2 (Var =", paste(round(skullCVA_AKC$Var[2, 2], 1),"%)"))) +
   theme_bw()
 
+p_CVA_bite <- ggplot(CVA_bite_df, aes(CV1, CV2, col = groups, fill = groups, shape = groups)) +
+  geom_point(size = 2) + 
+  stat_ellipse(geom = "polygon", aes(fill = groups, 
+                                     group = groups), level = 0.95, alpha = 0.2) +
+  scale_shape_manual(values = c(21, 23, 0, 2), name = " ") +
+  scale_color_manual(values = fxn_group_palette, name = " ") + 
+  scale_fill_manual(values = fxn_group_palette, name = " ") +
+  theme_bw()
+
+p_CVA_scent <- ggplot(CVA_scent_df, aes(CV1, CV2, col = groups, fill = groups, shape = groups)) +
+  geom_point(size = 2) + 
+  stat_ellipse(geom = "polygon", aes(fill = groups, 
+                                     group = groups), level = 0.95, alpha = 0.2) +
+  scale_shape_manual(values = c(21, 23, 0, 2), name = " ") +
+  scale_color_manual(values = fxn_group_palette, name = " ") + 
+  scale_fill_manual(values = fxn_group_palette, name = " ") +
+  theme_bw()
+
 p_CVA_AKC + p_CVA_UKC
 ```
 
@@ -229,11 +272,35 @@ Classification p-value table for UKC groupings:
 kable(p_values_UKC[-1, -9], digits = 3)
 ```
 
+Classification p-value table for bitework grouping:
+
+```{r p-value-bite-tab, echo = FALSE}
+kable(p_values_bite[-1,-4], digits = 3)
+```
+
+Classification p-value table for scentwork grouping:
+
+```{r p-value-scent-tab, echo = FALSE}
+kable(p_values_scent[-1,-4], digits = 3)
+```
+
 
 ```{r}
 # Save tables for SI
-write.csv(p_values_AKC[-1, -8], file ="./results/Table_S3_AKC_pvalues.csv")
-write.csv(p_values_UKC[-1, -9], file ="./results/Table_S4_UKC_pvalues.csv")
+write.csv(p_values_AKC[-1, -8], file ="./results/Table_S4_AKC_pvalues.csv")
+write.csv(p_values_UKC[-1, -9], file ="./results/Table_S3_UKC_pvalues.csv")
+```
+
+## MANOVA 
+
+```{r}
+man_UKC <- manova(as.matrix(skulls[,1:5])~skulls$UKC)
+summary.aov(man_UKC, test="Pillai")
+```
+
+```{r}
+lda_UKC <- MASS::lda(skulls$UKC~as.matrix(skulls[,1:3]))
+lda_UKC
 ```
 
 ## Testing of Functional Groups
@@ -313,12 +380,12 @@ t.test(bite_yes_canine, bite_fox_canine)
 Figure 2: 
 
 ```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=6.5, fig.width=10}
-pkmean 
+pkmean  / (pAKC + pUKC ) + plot_annotation(tag_levels = "A")
 ggsave("./results/figures/figure2.pdf")
 ```
 
 ```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
-(pAKC + ggtitle("AKC") + pUKC + ggtitle("UKC")) / (p_CVA_AKC + p_CVA_UKC) + 
+ (p_CVA_AKC + p_CVA_UKC) + 
   plot_annotation(tag_levels = "A") + 
   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ggsave("./results/figures/figure3.pdf")
