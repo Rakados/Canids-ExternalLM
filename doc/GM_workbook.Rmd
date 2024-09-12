@@ -7,12 +7,21 @@ output: html_notebook
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 knitr::opts_chunk$set(echo = TRUE, fig.width = 8.5)
 options(knitr.graphics.error = FALSE)
+options(rgl.useNULL=TRUE) # Note: OpenGL is depreciated on Macs, and this will cause an error when loading the Morpho package. Setting this option removes the error. 
 
+library(tidyverse)
+library(janitor)
+library(gtools)
 library(ggplot2)
 library(patchwork)
 library(ggrepel)
+library(geomorph)
+# devtools::install_github('SlicerMorph/SlicerMorphR')
+library(SlicerMorphR)
 # devtools::install_github("lindsaywaldrop/munchcolors")
 library(munchcolors)
+# devtools::install_github("zarquon42b/Morpho")
+library(Morpho)
 ```
 
 
@@ -215,4 +224,22 @@ Figure 3:
 ```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=7.5, fig.width=10}
 (pscent + pbite + plot_layout(guides = "collect")) / pforce  + plot_annotation(tag_levels = "A")
 ggsave("./results/figures/figure3.pdf")
+```
+
+## Canonical Variates Analysis on groups
+
+```{r}
+
+skulls <- cbind(SlicerMorph.repc[,1:5], "UKC" = SlicerMorph.repc$UKC, "AKC" = SlicerMorph.repc$AKC)
+skulls <- na.omit(skulls)
+
+skullCVA <- CVA(skulls[,1:5],skulls$UKC)
+
+plot(skullCVA$CVscores)
+
+cvvis5 <- 5*skullCVA$CVvis[,1]+skullCVA$Grandm
+cvvisNeg5 <- -5*skullCVA$CVvis[,1]+skullCVA$Grandm
+cvvis5 <- restoreShapes(cvvis5,proc$PCs[,1:5],proc$mshape)
+cvvisNeg5 <- restoreShapes(cvvisNeg5,proc$PCs[,1:5],proc$mshape)
+
 ```
