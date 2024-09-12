@@ -7,6 +7,7 @@ output: html_notebook
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 knitr::opts_chunk$set(echo = TRUE, fig.width = 8.5)
 options(knitr.graphics.error = FALSE)
+options(knitr.kable.NA = '')
 options(rgl.useNULL=TRUE) # Note: OpenGL is depreciated on Macs, and this will cause an error when loading the Morpho package. Setting this option removes the error. 
 
 library(tidyverse)
@@ -26,7 +27,7 @@ library(Morpho)
 ```
 
 
-## Running principal component and k-means clustering analysis
+## Running principal component and k-means clustering analyses
 
 ```{r}
 dir.create("./results", showWarnings = F)
@@ -146,44 +147,49 @@ pUKC + pAKC
 
 ## Canonical Variates Analysis on groups
 
-Running CVA analysis with Morpho package: 
+Running CVA analysis on the first 5 principal components with Morpho package.
 
 ```{r}
-skulls <- cbind(SlicerMorph.repc[,1:5], 
+# Extracting first 5 PCs and each kennel-club grouping scheme
+skulls <- cbind(SlicerMorph.repc[, 1:5], 
                 "UKC" = factor(SlicerMorph.repc$UKC, ordered = T, levels = UKC_group_order), 
                 "AKC" = factor(SlicerMorph.repc$AKC, ordered = T, levels = AKC_group_order))
 skulls <- na.omit(skulls)
 
 # CVA
-skullCVA_UKC <- CVA(skulls[,1:5],skulls$UKC)
-skullCVA_AKC <- CVA(skulls[,1:5],skulls$AKC)
+skullCVA_UKC <- CVA(skulls[, 1:5], skulls$UKC)
+skullCVA_AKC <- CVA(skulls[, 1:5], skulls$AKC)
 
-# Type probabilites
-typprobs_UKC <- typprobClass(skullCVA_UKC$CVscores, groups=skulls$UKC)
-typprobs_AKC <- typprobClass(skullCVA_AKC$CVscores, groups=skulls$AKC)
+# Type probabilities
+typprobs_UKC <- typprobClass(skullCVA_UKC$CVscores, groups = skulls$UKC)
+typprobs_AKC <- typprobClass(skullCVA_AKC$CVscores, groups = skulls$AKC)
 
 # Permutation distance, extract p-value tables
-perms_AKC <- permudist(skullCVA_AKC$CVscores,skulls$AKC, p.adjust.method = "bonferroni")
+perms_AKC <- permudist(skullCVA_AKC$CVscores, skulls$AKC, p.adjust.method = "bonferroni")
 p_values_AKC <- as.matrix(perms_AKC$p.value, arr.ind = TRUE)
-perms_UKC <- permudist(skullCVA_UKC$CVscores,skulls$UKC, p.adjust.method = "bonferroni")
+p_values_AKC[upper.tri(p_values_AKC, diag = T)] <- NA
+
+perms_UKC <- permudist(skullCVA_UKC$CVscores, skulls$UKC, p.adjust.method = "bonferroni")
 p_values_UKC <- as.matrix(perms_UKC$p.value, arr.ind = TRUE)
+p_values_UKC[upper.tri(p_values_UKC, diag = T)] <- NA
 ```
 
 Plotting CV results with kennel-club groups:
 
 ```{r, warning=FALSE, message = FALSE, echo = FALSE}
-CVA_UKC_df <- data.frame("CV1" = skullCVA_UKC$CVscores[,1], 
-                         "CV2" = skullCVA_UKC$CVscores[,2],
-                         "CV3" = skullCVA_UKC$CVscores[,3],
-                         "CV4" = skullCVA_UKC$CVscores[,4],
-                         "CV5" = skullCVA_UKC$CVscores[,5],
+# Creating data frames for plotting
+CVA_UKC_df <- data.frame("CV1" = skullCVA_UKC$CVscores[, 1], 
+                         "CV2" = skullCVA_UKC$CVscores[, 2],
+                         "CV3" = skullCVA_UKC$CVscores[, 3],
+                         "CV4" = skullCVA_UKC$CVscores[, 4],
+                         "CV5" = skullCVA_UKC$CVscores[, 5],
                          "groups" = skulls$UKC)
 
-CVA_AKC_df <- data.frame("CV1" = skullCVA_AKC$CVscores[,1], 
-                         "CV2" = skullCVA_AKC$CVscores[,2],
-                         "CV3" = skullCVA_AKC$CVscores[,3],
-                         "CV4" = skullCVA_AKC$CVscores[,4],
-                         "CV5" = skullCVA_AKC$CVscores[,5],
+CVA_AKC_df <- data.frame("CV1" = skullCVA_AKC$CVscores[, 1], 
+                         "CV2" = skullCVA_AKC$CVscores[, 2],
+                         "CV3" = skullCVA_AKC$CVscores[, 3],
+                         "CV4" = skullCVA_AKC$CVscores[, 4],
+                         "CV5" = skullCVA_AKC$CVscores[, 5],
                          "groups" = skulls$AKC)
 
 p_CVA_UKC <- ggplot(CVA_UKC_df, aes(CV1, CV2, col = groups, fill = groups, shape = groups)) + 
@@ -193,8 +199,8 @@ p_CVA_UKC <- ggplot(CVA_UKC_df, aes(CV1, CV2, col = groups, fill = groups, shape
   scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "UKC Groups") +
   scale_color_manual(values = kc_palette, name = "UKC Groups") + 
   scale_fill_manual(values = kc_palette, name = "UKC Groups") +
-  xlab(paste0("CV 1 (Var = ", paste(round(skullCVA_UKC$Var[1,2],1),"%)"))) + 
-  ylab(paste0("CV 2 (Var = ", paste(round(skullCVA_UKC$Var[2,2],1),"%)"))) +
+  xlab(paste0("CV 1 (Var = ", paste(round(skullCVA_UKC$Var[1, 2], 1),"%)"))) + 
+  ylab(paste0("CV 2 (Var = ", paste(round(skullCVA_UKC$Var[2, 2], 1),"%)"))) +
   theme_bw()
 
 p_CVA_AKC <- ggplot(CVA_AKC_df, aes(CV1, CV2, col = groups, fill = groups, shape = groups)) + 
@@ -204,22 +210,23 @@ p_CVA_AKC <- ggplot(CVA_AKC_df, aes(CV1, CV2, col = groups, fill = groups, shape
   scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "AKC Groups") +
   scale_color_munch(choice = "Murderer", discrete = TRUE, name = "AKC Groups") + 
   scale_fill_munch(choice = "Murderer", discrete = TRUE, name = "AKC Groups") +
-  xlab(paste0("CV 1 (Var =", paste(round(skullCVA_AKC$Var[1,2],1),"%)"))) + 
-  ylab(paste0("CV 2 (Var =", paste(round(skullCVA_AKC$Var[2,2],1),"%)"))) +
+  xlab(paste0("CV 1 (Var =", paste(round(skullCVA_AKC$Var[1, 2], 1),"%)"))) + 
+  ylab(paste0("CV 2 (Var =", paste(round(skullCVA_AKC$Var[2, 2], 1),"%)"))) +
   theme_bw()
+
 p_CVA_AKC + p_CVA_UKC
 ```
 
 Classification p-value table for AKC groupings:
 
 ```{r p-value-AKC-tab, echo = FALSE}
-kable(p_values_AKC)
+kable(p_values_AKC[-1, -8], digits = 3)
 ```
 
 Classification p-value table for UKC groupings:
 
 ```{r p-value-UKC-tab, echo = FALSE}
-kable(p_values_UKC)
+kable(p_values_UKC[-1, -9], digits = 3)
 ```
 
 ## Testing of Functional Groups
