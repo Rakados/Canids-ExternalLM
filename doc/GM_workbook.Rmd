@@ -14,6 +14,7 @@ library(janitor)
 library(gtools)
 library(ggplot2)
 library(patchwork)
+library(kableExtra)
 library(ggrepel)
 library(geomorph)
 # devtools::install_github('SlicerMorph/SlicerMorphR')
@@ -25,7 +26,7 @@ library(Morpho)
 ```
 
 
-## Running analysis
+## Running principal component and k-means clustering analysis
 
 ```{r}
 dir.create("./results", showWarnings = F)
@@ -33,10 +34,10 @@ dir.create("./results/figures", showWarnings = F)
 source("./src/GM_stats.R")
 ```
 
-## Plotting results
+## Plotting PC and k-means results
 
 
-```{r plotting-setup}
+```{r plotting-setup, include=FALSE}
 # Setting UKC group order
 UKC_group_order <- c("NATURAL", "Herding", "Terrier", "Companion", "Gun dog", 
                      "Guardian", "Northern Breed", "Sighthound", "Scenthound")
@@ -107,6 +108,8 @@ pkmean <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$UKC),], aes(PC.1, PC.2
 pkmean
 ```
 
+Kennel-club groupings and PC results:
+
 ```{r kc-groups, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=5.5, fig.width=12}
 #now build the plot
 kc_palette <- munch_palette("Murderer", 8)
@@ -136,8 +139,90 @@ pAKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$AKC),], aes(PC.1, PC.2, 
   
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
   theme_bw()
+
 pUKC + pAKC
 ```
+
+
+## Canonical Variates Analysis on groups
+
+Running CVA analysis with Morpho package: 
+
+```{r}
+skulls <- cbind(SlicerMorph.repc[,1:5], 
+                "UKC" = factor(SlicerMorph.repc$UKC, ordered = T, levels = UKC_group_order), 
+                "AKC" = factor(SlicerMorph.repc$AKC, ordered = T, levels = AKC_group_order))
+skulls <- na.omit(skulls)
+
+# CVA
+skullCVA_UKC <- CVA(skulls[,1:5],skulls$UKC)
+skullCVA_AKC <- CVA(skulls[,1:5],skulls$AKC)
+
+# Type probabilites
+typprobs_UKC <- typprobClass(skullCVA_UKC$CVscores, groups=skulls$UKC)
+typprobs_AKC <- typprobClass(skullCVA_AKC$CVscores, groups=skulls$AKC)
+
+# Permutation distance, extract p-value tables
+perms_AKC <- permudist(skullCVA_AKC$CVscores,skulls$AKC, p.adjust.method = "bonferroni")
+p_values_AKC <- as.matrix(perms_AKC$p.value, arr.ind = TRUE)
+perms_UKC <- permudist(skullCVA_UKC$CVscores,skulls$UKC, p.adjust.method = "bonferroni")
+p_values_UKC <- as.matrix(perms_UKC$p.value, arr.ind = TRUE)
+```
+
+Plotting CV results with kennel-club groups:
+
+```{r, warning=FALSE, message = FALSE, echo = FALSE}
+CVA_UKC_df <- data.frame("CV1" = skullCVA_UKC$CVscores[,1], 
+                         "CV2" = skullCVA_UKC$CVscores[,2],
+                         "CV3" = skullCVA_UKC$CVscores[,3],
+                         "CV4" = skullCVA_UKC$CVscores[,4],
+                         "CV5" = skullCVA_UKC$CVscores[,5],
+                         "groups" = skulls$UKC)
+
+CVA_AKC_df <- data.frame("CV1" = skullCVA_AKC$CVscores[,1], 
+                         "CV2" = skullCVA_AKC$CVscores[,2],
+                         "CV3" = skullCVA_AKC$CVscores[,3],
+                         "CV4" = skullCVA_AKC$CVscores[,4],
+                         "CV5" = skullCVA_AKC$CVscores[,5],
+                         "groups" = skulls$AKC)
+
+p_CVA_UKC <- ggplot(CVA_UKC_df, aes(CV1, CV2, col = groups, fill = groups, shape = groups)) + 
+  geom_point(size = 2) +
+  stat_ellipse(geom = "polygon", aes(fill = groups, 
+                                     group = groups), level = 0.95, alpha = 0.2) +
+  scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "UKC Groups") +
+  scale_color_manual(values = kc_palette, name = "UKC Groups") + 
+  scale_fill_manual(values = kc_palette, name = "UKC Groups") +
+  xlab(paste0("CV 1 (Var = ", paste(round(skullCVA_UKC$Var[1,2],1),"%)"))) + 
+  ylab(paste0("CV 2 (Var = ", paste(round(skullCVA_UKC$Var[2,2],1),"%)"))) +
+  theme_bw()
+
+p_CVA_AKC <- ggplot(CVA_AKC_df, aes(CV1, CV2, col = groups, fill = groups, shape = groups)) + 
+  geom_point(size = 2) +
+  stat_ellipse(geom = "polygon", aes(fill = groups, 
+                                     group = groups), level = 0.95, alpha = 0.2) +
+  scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "AKC Groups") +
+  scale_color_munch(choice = "Murderer", discrete = TRUE, name = "AKC Groups") + 
+  scale_fill_munch(choice = "Murderer", discrete = TRUE, name = "AKC Groups") +
+  xlab(paste0("CV 1 (Var =", paste(round(skullCVA_AKC$Var[1,2],1),"%)"))) + 
+  ylab(paste0("CV 2 (Var =", paste(round(skullCVA_AKC$Var[2,2],1),"%)"))) +
+  theme_bw()
+p_CVA_AKC + p_CVA_UKC
+```
+
+Classification p-value table for AKC groupings:
+
+```{r p-value-AKC-tab, echo = FALSE}
+kable(p_values_AKC)
+```
+
+Classification p-value table for UKC groupings:
+
+```{r p-value-UKC-tab, echo = FALSE}
+kable(p_values_UKC)
+```
+
+## Testing of Functional Groups
 
 ```{r fxn-groupings, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.cap="Bitework and scent work."}
 fxn_group_palette <- munch_palette("Murderer",8)[c(1:3,5)]
@@ -169,7 +254,7 @@ pscent + pbite + plot_layout(guides = "collect")
 
 ```
 
-```{r bite-force}
+```{r bite-force, echo=FALSE, message=FALSE, warning=FALSE}
 bite_data <- data.frame("Breed" = SlicerMorph.repc$Breed, 
                         "Bitework" = SlicerMorph.repc$Bitework, 
                         "Domestic" = SlicerMorph.repc$domestic, 
@@ -209,37 +294,29 @@ t.test(bite_yes_canine, bite_natural_canine)
 t.test(bite_yes_canine, bite_fox_canine)
 ```
 
-
 ## For the paper: 
 
 Figure 2: 
 
-```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
-pkmean / (pAKC + pUKC) + plot_annotation(tag_levels = "A")
+```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=6.5, fig.width=10}
+pkmean 
 ggsave("./results/figures/figure2.pdf")
 ```
 
-Figure 3: 
-
-```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=7.5, fig.width=10}
-(pscent + pbite + plot_layout(guides = "collect")) / pforce  + plot_annotation(tag_levels = "A")
+```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
+(pAKC + ggtitle("AKC") + pUKC + ggtitle("UKC")) / (p_CVA_AKC + p_CVA_UKC) + 
+  plot_annotation(tag_levels = "A") + 
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ggsave("./results/figures/figure3.pdf")
 ```
 
-## Canonical Variates Analysis on groups
+Figure 4: 
 
-```{r}
-
-skulls <- cbind(SlicerMorph.repc[,1:5], "UKC" = SlicerMorph.repc$UKC, "AKC" = SlicerMorph.repc$AKC)
-skulls <- na.omit(skulls)
-
-skullCVA <- CVA(skulls[,1:5],skulls$UKC)
-
-plot(skullCVA$CVscores)
-
-cvvis5 <- 5*skullCVA$CVvis[,1]+skullCVA$Grandm
-cvvisNeg5 <- -5*skullCVA$CVvis[,1]+skullCVA$Grandm
-cvvis5 <- restoreShapes(cvvis5,proc$PCs[,1:5],proc$mshape)
-cvvisNeg5 <- restoreShapes(cvvisNeg5,proc$PCs[,1:5],proc$mshape)
-
+```{r fig-4, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=7.5, fig.width=10}
+(pscent + pbite + plot_layout(guides = "collect")) / pforce  + plot_annotation(tag_levels = "A")
+ggsave("./results/figures/figure4.pdf")
 ```
+
+
+
+
