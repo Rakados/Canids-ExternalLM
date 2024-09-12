@@ -229,6 +229,13 @@ Classification p-value table for UKC groupings:
 kable(p_values_UKC[-1, -9], digits = 3)
 ```
 
+
+```{r}
+# Save tables for SI
+write.csv(p_values_AKC[-1, -8], file ="./results/Table_S3_AKC_pvalues.csv")
+write.csv(p_values_UKC[-1, -9], file ="./results/Table_S4_UKC_pvalues.csv")
+```
+
 ## Testing of Functional Groups
 
 ```{r fxn-groupings, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.cap="Bitework and scent work."}
