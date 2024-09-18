@@ -23,7 +23,7 @@ library(SlicerMorphR)
 # devtools::install_github("lindsaywaldrop/munchcolors")
 library(munchcolors)
 # devtools::install_github("zarquon42b/Morpho")
-library(Morpho)
+#library(Morpho)
 ```
 
 
@@ -188,6 +188,80 @@ meanshape.bite<-meanforge(reforge,"bitework")
 
 ```
 
+Reformatting data for visualization:
+
+```{r}
+calc_gpa_dist <- function(dat){
+  require(tidyr)
+  n <- length(names(dat))
+  results <- matrix(NA, nrow = nrow(dat[[1]]), ncol = n)
+  results <- as.data.frame(results)
+  results <- cbind(seq(1,nrow(results)), results)
+  colnames(results) <- c("landmark",names(dat))
+  
+  for(i in names(dat)){
+    results[[i]] <- sqrt(dat[[i]][,"X"]^2 + dat[[i]][,"Y"]^2 + dat[[i]][,"Z"]^2)
+  }
+  results_long <- pivot_longer(results, cols = -"landmark", names_to = "comparison")
+  results_long$landmark <- factor(results_long$landmark)
+  return(results_long)
+}
+
+meanshape.AKC[["plotting"]] <- calc_gpa_dist(meanshape.AKC)
+meanshape.UKC[["plotting"]] <- calc_gpa_dist(meanshape.UKC)
+meanshape.bite[["plotting"]] <- calc_gpa_dist(meanshape.bite)
+meanshape.nose[["plotting"]] <- calc_gpa_dist(meanshape.nose)
+
+meanshape.AKC[["plotting"]]$short <- ifelse(grepl("toy", meanshape.AKC[["plotting"]]$comparison, 
+                                                  ignore.case = T),
+                                           "toy", 
+                                           ifelse(grepl("natural", meanshape.AKC[["plotting"]]$comparison,
+                                                        ignore.case = T),
+                                                  "natural", "other"))
+meanshape.AKC[["plotting"]]$short <- factor(meanshape.AKC[["plotting"]]$short, 
+                                            ordered = T, levels = c("toy", "natural", "other"))
+meanshape.UKC[["plotting"]]$short <- ifelse(grepl("companion", meanshape.UKC[["plotting"]]$comparison,
+                                                      ignore.case = T),
+                                           "companion", 
+                                           ifelse(grepl("natural", meanshape.UKC[["plotting"]]$comparison,
+                                                      ignore.case = T),
+                                           "natural", "other"))
+meanshape.UKC[["plotting"]]$short <- factor(meanshape.UKC[["plotting"]]$short, 
+                                            ordered = T, levels = c("companion", "natural", "other"))
+
+```
+
+AKC & UKC groups:
+```{r}
+p_UKC_compare <- ggplot(meanshape.UKC[["plotting"]], aes(landmark, value, color = short)) + 
+  geom_point() + 
+  scale_color_viridis_d(name = " ") +
+  ggtitle("UKC Group Comparisons") +
+  theme_bw()
+p_AKC_compare <- ggplot(meanshape.AKC[["plotting"]], aes(landmark, value, color = short)) + 
+  geom_point(position = position_jitter(width = 0.1)) + 
+  scale_color_viridis_d(name = " ") +
+  ggtitle("AKC Group Comparisons") +
+  theme_bw()
+p_AKC_compare / p_UKC_compare
+```
+Nosework and Bitework: 
+
+```{r}
+p_bite_compare <-  ggplot(meanshape.bite[["plotting"]], aes(landmark, value, color = comparison)) + 
+  geom_point(position = position_jitter(width = 0.1)) + 
+  scale_color_viridis_d(name = " ") +
+ ggtitle("Bite-work group comparisons") +
+  theme_bw()
+p_nose_compare <- ggplot(meanshape.nose[["plotting"]], aes(landmark, value, color = comparison)) + 
+  geom_point(position = position_jitter(width = 0.1)) + 
+  scale_color_viridis_d(name = " ") +
+  ggtitle("Scent-work group comparisons") +
+  theme_bw()
+
+p_bite_compare / p_nose_compare + plot_layout(guides = "collect")
+```
+
 ## MANOVA 
 
 ```{r}
@@ -282,10 +356,10 @@ ggsave("./results/figures/figure2.pdf")
 ```
 
 ```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
- (p_CVA_AKC + p_CVA_UKC) + 
-  plot_annotation(tag_levels = "A") + 
-  plot_layout(guides = "collect") & theme(legend.position = "bottom")
-ggsave("./results/figures/figure3.pdf")
+# (p_CVA_AKC + p_CVA_UKC) + 
+#  plot_annotation(tag_levels = "A") + 
+#  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+#ggsave("./results/figures/figure3.pdf")
 ```
 
 Figure 4: 
