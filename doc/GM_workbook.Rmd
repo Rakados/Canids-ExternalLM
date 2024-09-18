@@ -210,7 +210,11 @@ calc_gpa_dist <- function(dat){
 meanshape.AKC[["plotting"]] <- calc_gpa_dist(meanshape.AKC)
 meanshape.UKC[["plotting"]] <- calc_gpa_dist(meanshape.UKC)
 meanshape.bite[["plotting"]] <- calc_gpa_dist(meanshape.bite)
+meanshape.bite[["cutoff"]] <- data.frame("mean" = mean(meanshape.bite[["plotting"]]$value), 
+                                        "sd" = sd(meanshape.bite[["plotting"]]$value))
 meanshape.nose[["plotting"]] <- calc_gpa_dist(meanshape.nose)
+meanshape.nose[["cutoff"]] <- data.frame("mean" = mean(meanshape.nose[["plotting"]]$value), 
+                                        "sd" = sd(meanshape.nose[["plotting"]]$value))
 
 meanshape.AKC[["plotting"]]$short <- ifelse(grepl("toy", meanshape.AKC[["plotting"]]$comparison, 
                                                   ignore.case = T),
@@ -220,6 +224,8 @@ meanshape.AKC[["plotting"]]$short <- ifelse(grepl("toy", meanshape.AKC[["plottin
                                                   "natural", "other"))
 meanshape.AKC[["plotting"]]$short <- factor(meanshape.AKC[["plotting"]]$short, 
                                             ordered = T, levels = c("toy", "natural", "other"))
+meanshape.AKC[["cutoff"]] <- data.frame("mean" = mean(meanshape.AKC[["plotting"]]$value), 
+                                        "sd" = sd(meanshape.AKC[["plotting"]]$value))
 meanshape.UKC[["plotting"]]$short <- ifelse(grepl("companion", meanshape.UKC[["plotting"]]$comparison,
                                                       ignore.case = T),
                                            "companion", 
@@ -228,21 +234,36 @@ meanshape.UKC[["plotting"]]$short <- ifelse(grepl("companion", meanshape.UKC[["p
                                            "natural", "other"))
 meanshape.UKC[["plotting"]]$short <- factor(meanshape.UKC[["plotting"]]$short, 
                                             ordered = T, levels = c("companion", "natural", "other"))
+meanshape.UKC[["cutoff"]] <- data.frame("mean" = mean(meanshape.UKC[["plotting"]]$value), 
+                                        "sd" = sd(meanshape.UKC[["plotting"]]$value))
 
 ```
 
 AKC & UKC groups:
 ```{r}
 p_UKC_compare <- ggplot(meanshape.UKC[["plotting"]], aes(landmark, value, color = short)) + 
-  geom_point() + 
-  scale_color_viridis_d(name = " ") +
-  ggtitle("UKC Group Comparisons") +
-  theme_bw()
+  geom_point(position = position_jitter(width = 0.1)) + 
+  geom_hline(yintercept = meanshape.UKC[["cutoff"]]$mean+2*meanshape.UKC[["cutoff"]]$sd,
+             lty = 2) +
+  scale_color_viridis_d(name = "Comparison against") +
+  ylab("DFA distance squared") +
+  ggtitle("UKC group comparisons") +
+  theme_bw() + 
+  theme(legend.position = "inside", legend.position.inside = c(0.75,0.65),
+        legend.background = element_rect(color = "gray30", fill = "white", linetype="solid",
+                                         linewidth = 0.2))
+
 p_AKC_compare <- ggplot(meanshape.AKC[["plotting"]], aes(landmark, value, color = short)) + 
   geom_point(position = position_jitter(width = 0.1)) + 
-  scale_color_viridis_d(name = " ") +
-  ggtitle("AKC Group Comparisons") +
-  theme_bw()
+  geom_hline(yintercept = meanshape.AKC[["cutoff"]]$mean+2*meanshape.AKC[["cutoff"]]$sd,
+             lty = 2) +
+  scale_color_viridis_d(name = "Comparison against") +
+  ylab("DFA distance squared") +
+  ggtitle("AKC group comparisons") +
+  theme_bw() +
+    theme(legend.position = "inside", legend.position.inside = c(0.75,0.65),
+        legend.background = element_rect(color = "gray30", fill = "white", linetype="solid",
+                                         linewidth = 0.2))
 p_AKC_compare / p_UKC_compare
 ```
 Nosework and Bitework: 
@@ -250,12 +271,18 @@ Nosework and Bitework:
 ```{r}
 p_bite_compare <-  ggplot(meanshape.bite[["plotting"]], aes(landmark, value, color = comparison)) + 
   geom_point(position = position_jitter(width = 0.1)) + 
-  scale_color_viridis_d(name = " ") +
- ggtitle("Bite-work group comparisons") +
+  geom_hline(yintercept = meanshape.bite[["cutoff"]]$mean+2*meanshape.bite[["cutoff"]]$sd,
+             lty = 2) +
+  scale_color_viridis_d(name = "Group-group\ncomparison") +
+  ylab("DFA distance squared") +
+  ggtitle("Bite-work group comparisons") +
   theme_bw()
 p_nose_compare <- ggplot(meanshape.nose[["plotting"]], aes(landmark, value, color = comparison)) + 
   geom_point(position = position_jitter(width = 0.1)) + 
-  scale_color_viridis_d(name = " ") +
+  geom_hline(yintercept = meanshape.nose[["cutoff"]]$mean+2*meanshape.nose[["cutoff"]]$sd,
+             lty = 2) +
+  scale_color_viridis_d(name = "Group-group\ncomparison") +
+  ylab("DFA distance squared") +
   ggtitle("Scent-work group comparisons") +
   theme_bw()
 
@@ -350,9 +377,16 @@ t.test(bite_yes_canine, bite_fox_canine)
 
 Figure 2: 
 
-```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=6.5, fig.width=10}
-pkmean  / (pAKC + pUKC ) + plot_annotation(tag_levels = "A")
-ggsave("./results/figures/figure2.pdf")
+```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=12, fig.width=10}
+design <- 
+  "AAAAAAAA#
+   BBBBCCCC#
+   DDDDDDDDD"
+pkmean + pAKC + pUKC +
+  (p_AKC_compare + p_UKC_compare) + 
+  plot_layout(design = design) +
+  plot_annotation(tag_levels = "A")
+ggsave("./results/figures/figure2.pdf", height = 12, width = 10)
 ```
 
 ```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
