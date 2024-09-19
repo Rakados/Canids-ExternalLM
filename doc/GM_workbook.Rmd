@@ -248,10 +248,10 @@ p_UKC_compare <- ggplot(meanshape.UKC[["plotting"]], aes(landmark, value, color 
   scale_color_viridis_d(name = "Comparison\nagainst:") +
   annotate("segment", x = 1, xend = 20, y = 0.0085, yend = 0.0085,
              lty = 1, color = "red") +
-  annotate("text", x = 10, y = 0.0075, label = "Anterior features", color = "red") +
+  annotate("text", x = 10, y = 0.0075, label = "Dorsal features", color = "red") +
     annotate("segment", x = 21, xend = 38, y = 0.0085, yend = 0.0085,
              lty = 1, color = "blue") +
-  annotate("text", x = 30, y = 0.0075, label = "Posterior features", color = "blue") +
+  annotate("text", x = 30, y = 0.0075, label = "Ventral features", color = "blue") +
   ylab("Group-mean landmark\ndistance squared") +
   ggtitle("UKC group comparisons") +
   theme_bw() #+
@@ -267,10 +267,10 @@ p_AKC_compare <- ggplot(meanshape.AKC[["plotting"]], aes(landmark, value, color 
   scale_color_viridis_d(name = "Comparison\nagainst:") +
   annotate("segment", x = 1, xend = 20, y = 0.0085, yend = 0.0085,
              lty = 1, color = "red") +
-  annotate("text", x = 10, y = 0.0075, label = "Anterior features", color = "red") +
+  annotate("text", x = 10, y = 0.0075, label = "Dorsal features", color = "red") +
   annotate("segment", x = 21, xend = 38, y = 0.0085, yend = 0.0085,
              lty = 1, color = "blue") +
-  annotate("text", x = 30, y = 0.0075, label = "Posterior features", color = "blue") +
+  annotate("text", x = 30, y = 0.0075, label = "Ventral features", color = "blue") +
   ylab("Group-mean landmark\ndistance squared") +
   ggtitle("AKC group comparisons") +
   theme_bw() #+
@@ -289,10 +289,10 @@ p_bite_compare <-  ggplot(meanshape.bite[["plotting"]], aes(landmark, value, col
              lty = 2) +
   annotate("segment", x = 1, xend = 20, y = 0.007, yend = 0.007,
              lty = 1, color = "red") +
-  annotate("text", x = 10, y = 0.0065, label = "Anterior features", color = "red") +
+  annotate("text", x = 10, y = 0.0065, label = "Dorsal features", color = "red") +
     annotate("segment", x = 21, xend = 38, y = 0.007, yend = 0.007,
              lty = 1, color = "blue") +
-  annotate("text", x = 30, y = 0.0065, label = "Posterior features", color = "blue") +
+  annotate("text", x = 30, y = 0.0065, label = "Ventral features", color = "blue") +
   scale_color_viridis_d(name = "Group-group\ncomparison") +
   ylab("Group-mean landmark\ndistance squared") +
   ggtitle("Bite-work group comparisons") +
@@ -303,10 +303,10 @@ p_nose_compare <- ggplot(meanshape.nose[["plotting"]], aes(landmark, value, colo
              lty = 2) +
   annotate("segment", x = 1, xend = 20, y = 0.007, yend = 0.007,
              lty = 1, color = "red") +
-  annotate("text", x = 10, y = 0.0065, label = "Anterior features", color = "red") +
+  annotate("text", x = 10, y = 0.0065, label = "Dorsal features", color = "red") +
     annotate("segment", x = 21, xend = 38, y = 0.007, yend = 0.007,
              lty = 1, color = "blue") +
-  annotate("text", x = 30, y = 0.0065, label = "Posterior features", color = "blue") +
+  annotate("text", x = 30, y = 0.0065, label = "Ventral features", color = "blue") +
   scale_color_viridis_d(name = "Group-group\ncomparison") +
   ylab("Group-mean landmark\ndistance squared") +
   ggtitle("Scent-work group comparisons") +
