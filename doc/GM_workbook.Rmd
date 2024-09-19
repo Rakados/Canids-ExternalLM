@@ -139,7 +139,7 @@ pAKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$AKC),], aes(PC.1, PC.2, 
   geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$AKC)], max.overlaps = 4, show.legend = FALSE)+
   
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
-  theme_bw()
+  theme_bw() 
 
 pUKC + pAKC
 ```
@@ -245,25 +245,39 @@ p_UKC_compare <- ggplot(meanshape.UKC[["plotting"]], aes(landmark, value, color 
   geom_point(position = position_jitter(width = 0.1)) + 
   geom_hline(yintercept = meanshape.UKC[["cutoff"]]$mean+2*meanshape.UKC[["cutoff"]]$sd,
              lty = 2) +
-  scale_color_viridis_d(name = "Comparison against") +
-  ylab("DFA distance squared") +
+  scale_color_viridis_d(name = "Comparison\nagainst:") +
+  annotate("segment", x = 1, xend = 20, y = 0.0085, yend = 0.0085,
+             lty = 1, color = "red") +
+  annotate("text", x = 10, y = 0.0075, label = "Anterior features", color = "red") +
+    annotate("segment", x = 21, xend = 38, y = 0.0085, yend = 0.0085,
+             lty = 1, color = "blue") +
+  annotate("text", x = 30, y = 0.0075, label = "Posterior features", color = "blue") +
+  ylab("Group-mean landmark\ndistance squared") +
   ggtitle("UKC group comparisons") +
-  theme_bw() + 
-  theme(legend.position = "inside", legend.position.inside = c(0.75,0.65),
-        legend.background = element_rect(color = "gray30", fill = "white", linetype="solid",
-                                         linewidth = 0.2))
+  theme_bw() #+
+  #theme(legend.position = "bottom")
+  #theme(legend.position = "inside", legend.position.inside = c(0.75,0.65),
+  #      legend.background = element_rect(color = "gray30", fill = "white", linetype="solid",
+  #                                       linewidth = 0.2))
 
 p_AKC_compare <- ggplot(meanshape.AKC[["plotting"]], aes(landmark, value, color = short)) + 
   geom_point(position = position_jitter(width = 0.1)) + 
   geom_hline(yintercept = meanshape.AKC[["cutoff"]]$mean+2*meanshape.AKC[["cutoff"]]$sd,
              lty = 2) +
-  scale_color_viridis_d(name = "Comparison against") +
-  ylab("DFA distance squared") +
+  scale_color_viridis_d(name = "Comparison\nagainst:") +
+  annotate("segment", x = 1, xend = 20, y = 0.0085, yend = 0.0085,
+             lty = 1, color = "red") +
+  annotate("text", x = 10, y = 0.0075, label = "Anterior features", color = "red") +
+  annotate("segment", x = 21, xend = 38, y = 0.0085, yend = 0.0085,
+             lty = 1, color = "blue") +
+  annotate("text", x = 30, y = 0.0075, label = "Posterior features", color = "blue") +
+  ylab("Group-mean landmark\ndistance squared") +
   ggtitle("AKC group comparisons") +
-  theme_bw() +
-    theme(legend.position = "inside", legend.position.inside = c(0.75,0.65),
-        legend.background = element_rect(color = "gray30", fill = "white", linetype="solid",
-                                         linewidth = 0.2))
+  theme_bw() #+
+  #theme(legend.position = "bottom")
+    #theme(legend.position = "inside", legend.position.inside = c(0.75,0.65),
+    #    legend.background = element_rect(color = "gray30", fill = "white", linetype="solid",
+    #                                     linewidth = 0.2))
 p_AKC_compare / p_UKC_compare
 ```
 Nosework and Bitework: 
@@ -273,16 +287,28 @@ p_bite_compare <-  ggplot(meanshape.bite[["plotting"]], aes(landmark, value, col
   geom_point(position = position_jitter(width = 0.1)) + 
   geom_hline(yintercept = meanshape.bite[["cutoff"]]$mean+2*meanshape.bite[["cutoff"]]$sd,
              lty = 2) +
+  annotate("segment", x = 1, xend = 20, y = 0.007, yend = 0.007,
+             lty = 1, color = "red") +
+  annotate("text", x = 10, y = 0.0065, label = "Anterior features", color = "red") +
+    annotate("segment", x = 21, xend = 38, y = 0.007, yend = 0.007,
+             lty = 1, color = "blue") +
+  annotate("text", x = 30, y = 0.0065, label = "Posterior features", color = "blue") +
   scale_color_viridis_d(name = "Group-group\ncomparison") +
-  ylab("DFA distance squared") +
+  ylab("Group-mean landmark\ndistance squared") +
   ggtitle("Bite-work group comparisons") +
   theme_bw()
 p_nose_compare <- ggplot(meanshape.nose[["plotting"]], aes(landmark, value, color = comparison)) + 
   geom_point(position = position_jitter(width = 0.1)) + 
   geom_hline(yintercept = meanshape.nose[["cutoff"]]$mean+2*meanshape.nose[["cutoff"]]$sd,
              lty = 2) +
+  annotate("segment", x = 1, xend = 20, y = 0.007, yend = 0.007,
+             lty = 1, color = "red") +
+  annotate("text", x = 10, y = 0.0065, label = "Anterior features", color = "red") +
+    annotate("segment", x = 21, xend = 38, y = 0.007, yend = 0.007,
+             lty = 1, color = "blue") +
+  annotate("text", x = 30, y = 0.0065, label = "Posterior features", color = "blue") +
   scale_color_viridis_d(name = "Group-group\ncomparison") +
-  ylab("DFA distance squared") +
+  ylab("Group-mean landmark\ndistance squared") +
   ggtitle("Scent-work group comparisons") +
   theme_bw()
 
@@ -379,29 +405,32 @@ Figure 2:
 
 ```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=12, fig.width=10}
 design <- 
-  "AAAAAAAA#
-   BBBBCCCC#
-   DDDDDDDDD"
-pkmean + pAKC + pUKC +
-  (p_AKC_compare + p_UKC_compare) + 
+  "AAAAAAAA
+   AAAAAAAA
+   BBBBCCCC
+   DDDDDDDD
+   EEEEEEEE"
+pkmean + 
+  pAKC + pUKC +
+  p_AKC_compare + p_UKC_compare + 
   plot_layout(design = design) +
   plot_annotation(tag_levels = "A")
 ggsave("./results/figures/figure2.pdf", height = 12, width = 10)
 ```
 
-```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
-# (p_CVA_AKC + p_CVA_UKC) + 
-#  plot_annotation(tag_levels = "A") + 
-#  plot_layout(guides = "collect") & theme(legend.position = "bottom")
-#ggsave("./results/figures/figure3.pdf")
+```{r fig-4, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
+design2 <- 
+  "AAAA
+   BBBB
+   BBBB
+   CCCC"
+(pscent + pbite + plot_layout(guides = "collect")) / (p_nose_compare /p_bite_compare + plot_layout(guides = "collect")& theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))) /pforce  + 
+  plot_layout(design = design2) +
+  plot_annotation(tag_levels = "A")
+ggsave("./results/figures/figure3.pdf", width = 10/1.25, height = 12/1.25)
 ```
 
-Figure 4: 
 
-```{r fig-4, echo=FALSE, warning=FALSE, fig.cap="K-means clustering plot.", fig.height=7.5, fig.width=10}
-(pscent + pbite + plot_layout(guides = "collect")) / pforce  + plot_annotation(tag_levels = "A")
-ggsave("./results/figures/figure4.pdf")
-```
 
 
 
