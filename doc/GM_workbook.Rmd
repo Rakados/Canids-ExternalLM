@@ -322,26 +322,35 @@ man_UKC <- manova(as.matrix(skulls[,1:5])~skulls$UKC)
 summary.aov(man_UKC, test="Pillai")
 
 #using Geomorph and doing pairwise comparisons
-manUKC<-procD.lm(shape ~ UKC, data = reforge)
-manAKC<-procD.lm(shape ~ AKC, data = reforge)
-manBite<-procD.lm(shape ~ bitework, data = reforge)
-manScent<-procD.lm(shape ~ scentwork, data = reforge)
+manUKC<-procD.lm(shape ~ UKC, data = reforge, RRPP = TRUE)
+manAKC<-procD.lm(shape ~ AKC, data = reforge, RRPP = TRUE)
+manBite<-procD.lm(shape ~ bitework, data = reforge, RRPP = TRUE)
+manScent<-procD.lm(shape ~ scentwork, data = reforge, RRPP = TRUE)
 
-anova(manUKC)
-anova(manAKC)
-anova(manBite)
-anova(manScent)
+hold.ukc<-manova(manUKC)
+hold.akc<-manova(manAKC)
+hold.bite<-manova(manBite)
+hold.nose<-manova(manScent)
 
 ukcpairs<-pairwise(manUKC, groups = reforge$UKC)
 akcpairs<-pairwise(manAKC, groups = reforge$AKC)
 bitepairs<-pairwise(manBite, groups = reforge$bitework)
 nosepairs<-pairwise(manScent, groups = reforge$scentwork)
 
-summary(ukcpairs, test.type= "dist", confidence = 0.95, stat.table = TRUE)
-summary(akcpairs, test.type= "dist", confidence = 0.95, stat.table = TRUE)
-summary(bitepairs, test.type= "dist", confidence = 0.95, stat.table = TRUE)
-summary(nosepairs, test.type= "dist", confidence = 0.95, stat.table = TRUE)
 
+pvals.UKC<-summary(ukcpairs, test.type= "dist", confidence = 0.95, stat.table = TRUE)
+pvals.UKC<-pvals.UKC$pairwise.tables$P[lower.tri(pvals.UKC$pairwise.tables$P)]
+pvals.AKC<-summary(akcpairs, test.type= "dist", confidence = 0.95, stat.table = TRUE)
+pvals.AKC<-pvals.AKC$pairwise.tables$P[lower.tri(pvals.AKC$pairwise.tables$P)]
+pvals.bite<-summary(bitepairs, test.type= "dist", confidence = 0.95, stat.table = TRUE)
+pvals.bite<-pvals.bite$pairwise.tables$P[lower.tri(pvals.bite$pairwise.tables$P)]
+pvals.nose<-summary(nosepairs, test.type= "dist", confidence = 0.95, stat.table = TRUE)
+pvals.nose<-pvals.nose$pairwise.tables$P[lower.tri(pvals.nose$pairwise.tables$P)]
+
+pvals.ukc.adjusted<-p.adjust(pvals.UKC, method = "bonf")
+pvals.akc.adjusted<-p.adjust(pvals.AKC, method = "bonf")
+pvals.bite.adjusted<-p.adjust(pvals.bite, method = "bonf")
+pvals.nose.adjusted<-p.adjust(pvals.nose, method = "bonf")
 ```
 
 ```{r}
