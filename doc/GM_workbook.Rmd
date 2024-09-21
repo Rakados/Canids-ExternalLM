@@ -8,7 +8,7 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 knitr::opts_chunk$set(echo = TRUE, fig.width = 8.5)
 options(knitr.graphics.error = FALSE)
 options(knitr.kable.NA = '')
-options(rgl.useNULL=TRUE) # Note: OpenGL is depreciated on Macs, and this will cause an error when loading the Morpho package. Setting this option removes the error. 
+options(rgl.useNULL=TRUE) # Note: OpenGL is depreciated on Macs and requires XQuartz in order to work properly. This will cause an error when loading the Morpho and geomorph packages. Setting this option removes the error. If you have XQuartz and don't mind it opening, suppress this line of code to regain full functionality.
 
 library(tidyverse)
 library(janitor)
@@ -24,6 +24,9 @@ library(SlicerMorphR)
 library(munchcolors)
 # devtools::install_github("zarquon42b/Morpho")
 #library(Morpho)
+#devtools::install_github("kjhealy/myriad")
+try(library(myriad)) # Loading a the myriad font package, if loading fails then figures will use default font family.
+if(any(library()$results[,"Package"] == "myriad")) theme_set(theme_myriad_semi())
 ```
 
 
@@ -89,6 +92,21 @@ SlicerMorph.repc$domestic <- factor(ifelse(SlicerMorph.repc$UKC == "NATURAL" |
                                            "Natural", "Domesticated"), 
                                     ordered = T, levels = c("Domesticated", "Natural"))
 
+## Calculating group means for setting skulls on plots: 
+UKC <- SlicerMorph.repc[!is.na(SlicerMorph.repc$UKC),]
+UKC <- UKC[,c("PC.1", "PC.2", "UKC")]
+UKC_scenthound_mean <- data.frame(x = mean(UKC$PC.1[UKC$UKC == "Scenthound"]),
+                           y = mean(UKC$PC.2[UKC$UKC == "Scenthound"]))
+UKC_companion_mean <- data.frame(x = mean(UKC$PC.1[UKC$UKC == "Companion"]),
+                                 y = mean(UKC$PC.2[UKC$UKC == "Companion"]))
+AKC <- SlicerMorph.repc[!is.na(SlicerMorph.repc$AKC),]
+AKC <- AKC[,c("PC.1", "PC.2", "AKC")]
+AKC_hound_mean <- data.frame(x = mean(AKC$PC.1[AKC$AKC == "Hound"]),
+                             y = mean(AKC$PC.2[AKC$AKC == "Hound"]))
+AKC_nonsporting_mean <- data.frame(x = mean(AKC$PC.1[AKC$AKC == "Non-sporting"]),
+                             y = mean(AKC$PC.2[AKC$AKC == "Non-sporting"]))
+AKC_toy_mean <- data.frame(x = mean(AKC$PC.1[AKC$AKC == "Toy"]),
+                             y = mean(AKC$PC.2[AKC$AKC == "Toy"]))
 ```
 
 K-means clustering plot: 
@@ -123,8 +141,14 @@ pUKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$UKC),], aes(PC.1, PC.2, 
   scale_shape_manual(values = c(19, 0, 1, 2, 5, 6, 7, 9, 10), name = "UKC Groups") +
   scale_color_manual(values = kc_palette, name = "UKC Groups") + 
   scale_fill_manual(values = kc_palette, name = "UKC Groups") +
-  geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$UKC)], max.overlaps = 4, show.legend = FALSE)+
-  
+  geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$UKC)], 
+                  max.overlaps = 4, show.legend = FALSE) +
+  annotate("segment", x = 0.1, xend = UKC_companion_mean$x, y = -0.1, yend = UKC_companion_mean$y,
+             lty = 1, color = kc_palette[4]) +
+  annotate("segment", x = -0.24, xend = UKC_scenthound_mean$x, y = -0.1, yend = UKC_scenthound_mean$y,
+             lty = 1, color = kc_palette[9]) +
+  xlim(-0.35, NA) +
+  ylim(-0.20, NA) +
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
   theme_bw()
 pAKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$AKC),], aes(PC.1, PC.2, color = AKC.shapefact, 
@@ -137,7 +161,14 @@ pAKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$AKC),], aes(PC.1, PC.2, 
   scale_color_munch(choice = "Murderer", discrete = TRUE, name = "AKC Groups") + 
   scale_fill_munch(choice = "Murderer", discrete = TRUE, name = "AKC Groups") +
   geom_text_repel(label = SlicerMorph.repc$Breed[!is.na(SlicerMorph.repc$AKC)], max.overlaps = 4, show.legend = FALSE)+
-  
+  annotate("segment", x = -0.22, xend = AKC_hound_mean$x, y = -0.05, yend = AKC_hound_mean$y,
+             lty = 1, color = kc_palette[8]) +
+  annotate("segment", x = 0.1, xend = AKC_nonsporting_mean$x, y = 0.15, yend = AKC_nonsporting_mean$y,
+             lty = 1, color = kc_palette[7]) +
+  annotate("segment", x = 0.16, xend = AKC_toy_mean$x, y = -0.07, yend = AKC_toy_mean$y,
+             lty = 1, color = kc_palette[4]) +
+  xlim(-0.35, NA) +
+  ylim(NA, 0.20) +
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
   theme_bw() 
 
@@ -249,7 +280,7 @@ p_UKC_compare <- ggplot(meanshape.UKC[["plotting"]], aes(landmark, value, color 
   annotate("segment", x = 1, xend = 20, y = 0.0085, yend = 0.0085,
              lty = 1, color = "red") +
   annotate("text", x = 10, y = 0.0075, label = "Dorsal features", color = "red") +
-    annotate("segment", x = 21, xend = 38, y = 0.0085, yend = 0.0085,
+  annotate("segment", x = 21, xend = 38, y = 0.0085, yend = 0.0085,
              lty = 1, color = "blue") +
   annotate("text", x = 30, y = 0.0075, label = "Ventral features", color = "blue") +
   ylab("Group-mean landmark\ndistance squared") +
@@ -373,7 +404,7 @@ pbite <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Bitework,
   xlab("PC 1 (Var = 50.2%)") + 
   ylab(" ") +
   ggtitle("Selected for bite work") +
-  theme_bw()
+  theme_bw() + theme(legend.position = "right")
 pscent <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Nosework, 
                                    fill = Nosework,
                                    shape = Nosework)) + 
@@ -385,8 +416,8 @@ pscent <- ggplot(SlicerMorph.repc, aes(PC.1, PC.2, color = Nosework,
   xlab("PC 1 (Var = 50.2%)") + 
   ylab("PC 2 (Var = 13.3%)") +
   ggtitle("Selected for scent work") +
-  theme_bw()
-pscent + pbite + plot_layout(guides = "collect")
+  theme_bw() 
+pscent + pbite + plot_layout(guides = "collect") & theme(legend.position = "right")
 
 ```
 
@@ -432,33 +463,57 @@ t.test(bite_yes_canine, bite_fox_canine)
 
 ## For the paper: 
 
-Figure 2: 
+Figure 2: k-means cluster on PC plot
 
-```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=12, fig.width=10}
-design <- 
-  "AAAAAAAA
-   AAAAAAAA
-   BBBBCCCC
-   DDDDDDDD
-   EEEEEEEE"
-pkmean + 
-  pAKC + pUKC +
-  p_AKC_compare + p_UKC_compare + 
-  plot_layout(design = design) +
-  plot_annotation(tag_levels = "A")
-ggsave("./results/figures/figure2.pdf", height = 12, width = 10)
+```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot.", fig.height=4, fig.width=9.6}
+pkmean + xlim(-0.22, 0.25) 
+ggsave("./results/figures/figure2.pdf", height = 4, width = 9.6)
 ```
 
-```{r fig-4, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
+Figure 3: UKC comparison figure
+
+```{r fig-3, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
+design2 <- 
+  "AAAA
+   AAAA
+   BBBB"
+(pUKC ) / 
+  (p_UKC_compare + ggtitle(" ")) + 
+  plot_layout(design = design2) +
+  plot_annotation(tag_levels = "A")
+ggsave("./results/figures/figure3.pdf", height = 9*0.95, width = 9.6*0.95)
+```
+
+Figure 4: AKC comparison figure
+
+```{r fig-4, echo=FALSE, warning=FALSE, fig.cap=" AKC groupings. ", fig.height=7.5, fig.width=12}
+design2 <- 
+  "AAAA
+   AAAA
+   BBBB"
+pAKC / (p_AKC_compare + ggtitle(" "))+
+  plot_layout(design = design2) +
+  plot_annotation(tag_levels = "A")
+ggsave("./results/figures/figure4.pdf", height = 9*0.95, width = 9.6*0.95)
+```
+
+Figure 5: task-specific group results
+
+```{r fig-5, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot. B. AKC groupings. C. UKC groupings.", fig.height=7.5, fig.width=12}
 design2 <- 
   "AAAA
    BBBB
    BBBB
    CCCC"
-(pscent + pbite + plot_layout(guides = "collect")) / (p_nose_compare /p_bite_compare + plot_layout(guides = "collect")& theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))) /pforce  + 
+(pscent + pbite + plot_layout(guides = "collect") & theme(legend.position = "right")) / 
+  (p_nose_compare /p_bite_compare + 
+     plot_layout(guides = "collect") & theme(legend.position = "right", 
+                                             axis.text.x = element_text(angle = 90, 
+                                                                        vjust = 0.5, hjust=1))) / 
+  pforce  + 
   plot_layout(design = design2) +
   plot_annotation(tag_levels = "A")
-ggsave("./results/figures/figure3.pdf", width = 10/1.25, height = 12/1.25)
+ggsave("./results/figures/figure5.pdf", width = 10, height = 12)
 ```
 
 
