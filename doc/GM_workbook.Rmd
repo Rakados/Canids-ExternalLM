@@ -344,17 +344,19 @@ p_bite_compare / p_nose_compare + plot_layout(guides = "collect")
 ```{r}
 man_UKC <- manova(as.matrix(skulls[,1:5])~skulls$UKC)
 summary.aov(man_UKC, test="Pillai")
+summary.manova(man_UKC, test="Pillai")
+man_AKC <- manova(as.matrix(skulls[,1:5])~skulls$AKC)
+summary.manova(man_AKC, test="Pillai")
+man_Bite <- manova(as.matrix(skulls[,1:5])~skulls$bitework)
+summary.manova(man_Bite, test="Pillai")
+man_Scent <- manova(as.matrix(skulls[,1:5])~skulls$scentwork)
+summary.manova(man_Scent, test="Pillai")
 
 #using Geomorph and doing pairwise comparisons
 manUKC<-procD.lm(shape ~ UKC, data = reforge, RRPP = TRUE)
 manAKC<-procD.lm(shape ~ AKC, data = reforge, RRPP = TRUE)
 manBite<-procD.lm(shape ~ bitework, data = reforge, RRPP = TRUE)
 manScent<-procD.lm(shape ~ scentwork, data = reforge, RRPP = TRUE)
-
-hold.ukc<-manova(manUKC)
-hold.akc<-manova(manAKC)
-hold.bite<-manova(manBite)
-hold.nose<-manova(manScent)
 
 ukcpairs<-pairwise(manUKC, groups = reforge$UKC)
 akcpairs<-pairwise(manAKC, groups = reforge$AKC)
