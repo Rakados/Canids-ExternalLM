@@ -15,12 +15,11 @@ library(janitor)
 library(gtools)
 library(ggplot2)
 library(patchwork)
-library(kableExtra)
 library(ggrepel)
 library(geomorph)
 # devtools::install_github('SlicerMorph/SlicerMorphR')
 library(SlicerMorphR)
-# devtools::install_github("lindsaywaldrop/munchcolors")
+# devtools::install_github('lindsaywaldrop/munchcolors')
 library(munchcolors)
 ```
 
