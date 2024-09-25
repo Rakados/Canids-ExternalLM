@@ -22,13 +22,7 @@ library(geomorph)
 library(SlicerMorphR)
 # devtools::install_github("lindsaywaldrop/munchcolors")
 library(munchcolors)
-# devtools::install_github("zarquon42b/Morpho")
-#library(Morpho)
-#devtools::install_github("kjhealy/myriad")
-try(library(myriad)) # Loading a the myriad font package, if loading fails then figures will use default font family.
-if(any(library()$results[,"Package"] == "myriad")) theme_set(theme_myriad_semi())
 ```
-
 
 ## Running principal component and k-means clustering analyses
 
@@ -147,7 +141,7 @@ pUKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$UKC),], aes(PC.1, PC.2, 
              lty = 1, color = kc_palette[4]) +
   annotate("segment", x = -0.24, xend = UKC_scenthound_mean$x, y = -0.1, yend = UKC_scenthound_mean$y,
              lty = 1, color = kc_palette[9]) +
-  xlim(-0.35, NA) +
+  xlim(-0.31, NA) +
   ylim(-0.20, NA) +
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
   theme_bw()
@@ -167,7 +161,7 @@ pAKC <- ggplot(SlicerMorph.repc[!is.na(SlicerMorph.repc$AKC),], aes(PC.1, PC.2, 
              lty = 1, color = kc_palette[7]) +
   annotate("segment", x = 0.16, xend = AKC_toy_mean$x, y = -0.07, yend = AKC_toy_mean$y,
              lty = 1, color = kc_palette[4]) +
-  xlim(-0.35, NA) +
+  xlim(-0.31, NA) +
   ylim(NA, 0.20) +
   xlab("PC 1 (Var = 50.2%)") + ylab("PC 2 (Var = 13.3%)") +
   theme_bw() 
@@ -466,7 +460,7 @@ t.test(bite_yes_canine, bite_fox_canine)
 Figure 2: k-means cluster on PC plot
 
 ```{r fig-2, echo=FALSE, warning=FALSE, fig.cap="A. K-means clustering plot.", fig.height=4, fig.width=9.6}
-pkmean + xlim(-0.22, 0.25) 
+pkmean + xlim(-0.22, 0.25) + theme(legend.margin=margin(c(0,0,0,0)))
 ggsave("./results/figures/figure2.pdf", height = 4, width = 9.6)
 ```
 
@@ -478,10 +472,12 @@ design2 <-
    AAAA
    BBBB"
 (pUKC ) / 
-  (p_UKC_compare + ggtitle(" ")) + 
-  plot_layout(design = design2) +
-  plot_annotation(tag_levels = "A")
-ggsave("./results/figures/figure3.pdf", height = 9*0.95, width = 9.6*0.95)
+  free(p_UKC_compare + ggtitle(" ") +  
+         theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))) + 
+  plot_annotation(tag_levels = "A") +
+  plot_layout(design = design2) & theme(legend.margin=margin(c(0,0,0,0)))
+  
+ggsave("./results/figures/figure3.pdf", height = 3.45*2, width = 3.25*2)
 ```
 
 Figure 4: AKC comparison figure
@@ -491,10 +487,10 @@ design2 <-
   "AAAA
    AAAA
    BBBB"
-pAKC / (p_AKC_compare + ggtitle(" "))+
-  plot_layout(design = design2) +
-  plot_annotation(tag_levels = "A")
-ggsave("./results/figures/figure4.pdf", height = 9*0.95, width = 9.6*0.95)
+pAKC / free(p_AKC_compare + ggtitle(" ") + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)))+
+  plot_annotation(tag_levels = "A") +
+  plot_layout(design = design2) & theme(legend.margin=margin(c(0,0,0,0)))
+ggsave("./results/figures/figure4.pdf", height = 3.45*2, width = 3.25*2)
 ```
 
 Figure 5: task-specific group results
@@ -511,9 +507,9 @@ design2 <-
                                              axis.text.x = element_text(angle = 90, 
                                                                         vjust = 0.5, hjust=1))) / 
   pforce  + 
-  plot_layout(design = design2) +
-  plot_annotation(tag_levels = "A")
-ggsave("./results/figures/figure5.pdf", width = 10, height = 12)
+  plot_annotation(tag_levels = "A") +
+  plot_layout(design = design2) & theme(legend.margin=margin(c(0,0,0,0)))
+ggsave("./results/figures/figure5.pdf", width = 9.6, height = 11.52)
 ```
 
 
